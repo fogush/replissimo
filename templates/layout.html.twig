@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Replissimo!</title>
+
+        <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}" type="text/css" />
+        <link rel="stylesheet" href="{{ asset('css/bootstrap-select.min.css') }}" type="text/css" />
+        <link rel="stylesheet" href="{{ asset('css/main.css') }}" type="text/css" />
+        <link  rel="shortcut icon" href="{{ asset('favicon.ico') }}" />
+    </head>
+    <body>
+        {% block content %}{% endblock %}
+        <script type="text/javascript" src="{{ asset('js/jquery-3.2.1.min.js') }}"></script>
+        <script type="text/javascript" src="{{ asset('js/bootstrap.min.js') }}"></script>
+        <script type="text/javascript" src="{{ asset('js/bootstrap-select.min.js') }}"></script>
+        <script type="text/javascript" src="{{ asset('js/main.js') }}"></script>
+    </body>
+</html>

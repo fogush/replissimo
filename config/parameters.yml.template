@@ -1,0 +1,12 @@
+database:
+    driver: 'pdo_mysql'
+    dbhost: 'localhost'
+    dbname: 'mysql'
+    user: 'root'
+    password: ''
+replissimo:
+    disallowed_databases:
+        - information_schema
+        - mysql
+        - performance_schema
+    user_owner: test.local

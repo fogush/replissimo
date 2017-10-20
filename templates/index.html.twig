@@ -1,0 +1,47 @@
+{% extends "layout.html.twig" %}
+
+{% block content %}
+    <div class="container">
+        <form id="main-form" class="center-block" method="post"
+              action="{{ path('run') }}" data-check-action="{{ path('check') }}">
+            <div class="row">
+                <h2>Copy database tool</h2>
+            </div>
+            <div class="row">
+                <div class="form-group">
+                    <label for="databases" class="form-control-label">Choose a database to copy</label>
+                    <select name="database" id="databases" class="selectpicker form-control" data-live-search="true">
+                    {% for database in databases %}
+                        <option value="{{ database }}">{{ database }}</option>
+                    {% endfor %}
+                    </select>
+                    <div class="help-message">
+                        Only databases from stagingdb01 are replicated and can be copied.
+                        Databases from other servers will be replicated in the future
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group">
+                    <label for="user-name" class="form-control-label">Enter your name (e.g. vpupkin)</label>
+                    <input name="user_name" type="text" id="user-name" class="form-control" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group">
+                    <button id="run" class="btn btn-primary">Run copying</button>
+                </div>
+            </div>
+            <div class="row" id="responses">
+                <div id="in-progress" class="alert alert-info hidden">
+                    <img src="{{ asset('images/loading.gif') }}" alt="Loading">
+                    <span>Copying is in progress...</span>
+                </div>
+                <div id="response-error" class="alert alert-danger hidden">
+                </div>
+                <div id="response-finish" class="alert alert-success hidden">
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock %}
