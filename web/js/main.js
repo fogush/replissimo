@@ -24,6 +24,8 @@ $(document).ready(function () {
     });
 
     $('#check').on('click', function (ev) {
+        ev.preventDefault();
+
         hideResponses();
 
         successRunHandler();
