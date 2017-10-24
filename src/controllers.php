@@ -13,13 +13,14 @@ $app->get('/', function () use ($app) {
 
 $app->post('/run', function (Request $request) use ($app) {
     try {
+        $databaseHelper = $app['database_helper'];
+
         $databaseToCopy = $request->get('database');
         $userName = $request->get('user_name');
-        $newDatabase = "_{$databaseToCopy}_{$userName}";
+        $newDatabase = $databaseHelper->getNewDatabaseName($databaseToCopy, $userName);
 
-        $databaseHelper = $app['database_helper'];
         if ($databaseHelper->isDatabaseNameValid($newDatabase)) {
-            return new Response("Database name '$newDatabase' is invalid", 400);
+            return new Response("Name '$newDatabase' is invalid", 400);
         }
 
         $databases = $databaseHelper->getAllowedDatabases();
@@ -47,24 +48,28 @@ $app->post('/run', function (Request $request) use ($app) {
 
 $app->get('/check', function (Request $request) use ($app) {
     try {
+        $databaseHelper = $app['database_helper'];
+
         $databaseToCopy = $request->get('database');
         $userName = $request->get('user_name');
-        $newDatabase = "_{$databaseToCopy}_{$userName}";
+        $newDatabase = $databaseHelper->getNewDatabaseName($databaseToCopy, $userName);
 
-        if ($app['database_helper']->isDatabaseNameValid($newDatabase)) {
-            return new Response("Database name '$newDatabase' is invalid", 400);
+        if ($databaseHelper->isDatabaseNameValid($newDatabase)) {
+            return $app->json(['finished' => false, 'resultMessage' => "Name '$newDatabase' is invalid"], 400);
+        }
+        if (!in_array($newDatabase, $databaseHelper->getAllowedDatabases())) {
+            $resultMessage = "Database '$newDatabase' doesn't exist on the server.";
+            return $app->json(['finished' => false, 'resultMessage' => $resultMessage], 400);
         }
 
         //Returns: running - nothing,
         //not running and there are logs - an error occurred,
         //not running and no logs - finished successfully
-        $stillRunning = $app['dump_runner']->checkRunning($newDatabase);
-        if ($stillRunning) {
+        if ($app['dump_runner']->isDumpRunning($newDatabase)) {
             return $app->json(['finished' => false, 'resultMessage' => '']);
         }
 
-        $logs = $app['dump_runner']->getLogs($newDatabase);
-        if ($logs) {
+        if ($logs = $app['dump_runner']->getRunLogs($newDatabase)) {
             $resultMessage = 'Something went wrong: <br>' . nl2br($logs);
             $status = 400;
         } else {

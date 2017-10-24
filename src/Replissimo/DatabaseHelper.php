@@ -15,6 +15,11 @@ class DatabaseHelper
         $this->config = $config;
     }
 
+    public function getNewDatabaseName(string $databaseToCopy, string $userName): string
+    {
+        return "_{$databaseToCopy}_{$userName}";
+    }
+
     public function isDatabaseNameValid(string $database): bool
     {
         return preg_match('/[^a-zA-Z\d_]/', $database);
