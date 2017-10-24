@@ -15,6 +15,8 @@ class DumpRunner
 
     public function copyDatabase(string $databaseToCopy, string $newDatabase, array $connectionSettings)
     {
+        $this->removeOldLog($newDatabase);
+
         $command = $this->getCommandString($databaseToCopy, $newDatabase, $connectionSettings);
 
         exec($command);
@@ -36,8 +38,9 @@ class DumpRunner
 
         $logPath = $this->getLogPath($newDatabase);
 
-        return "mysqldump --max_allowed_packet=512M $connectionString $databaseToCopy | " .
-            "mysql --max_allowed_packet=512M $connectionString $newDatabase 2> $logPath";
+        $preventWarning = '2>&1 | grep -a -v "Using a password"';
+        return "mysqldump --max_allowed_packet=512M $connectionString $databaseToCopy $preventWarning | " .
+            "mysql --max_allowed_packet=512M $connectionString $newDatabase $preventWarning > $logPath &";
     }
 
     public function checkRunning(string $newDatabase): bool
@@ -53,6 +56,14 @@ class DumpRunner
         }
 
         return '';
+    }
+
+    private function removeOldLog(string $databaseName)
+    {
+        $logPath = $this->getLogPath($databaseName);
+        if (file_exists($logPath)) {
+            unlink($logPath);
+        }
     }
 
     private function getLogPath(string $database): string

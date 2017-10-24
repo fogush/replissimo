@@ -17,11 +17,11 @@ $app->post('/run', function (Request $request) use ($app) {
         $userName = $request->get('user_name');
         $newDatabase = "_{$databaseToCopy}_{$userName}";
 
-        if (preg_match('/[^a-zA-Z_]/', $newDatabase)) {
+        $databaseHelper = $app['database_helper'];
+        if ($databaseHelper->isDatabaseNameValid($newDatabase)) {
             return new Response("Database name '$newDatabase' is invalid", 400);
         }
 
-        $databaseHelper = $app['database_helper'];
         $databases = $databaseHelper->getAllowedDatabases();
 
         if (!in_array($databaseToCopy, $databases)) {
@@ -46,14 +46,18 @@ $app->post('/run', function (Request $request) use ($app) {
 })->bind('run');
 
 $app->get('/check', function (Request $request) use ($app) {
-    $databaseToCopy = $request->get('database');
-    $userName = $request->get('user_name');
-    $newDatabase = "_{$databaseToCopy}_{$userName}";
-
-    //Returns: running - nothing,
-    //not running and there are logs - an error occurred,
-    //not running and no logs - finished successfully
     try {
+        $databaseToCopy = $request->get('database');
+        $userName = $request->get('user_name');
+        $newDatabase = "_{$databaseToCopy}_{$userName}";
+
+        if ($app['database_helper']->isDatabaseNameValid($newDatabase)) {
+            return new Response("Database name '$newDatabase' is invalid", 400);
+        }
+
+        //Returns: running - nothing,
+        //not running and there are logs - an error occurred,
+        //not running and no logs - finished successfully
         $stillRunning = $app['dump_runner']->checkRunning($newDatabase);
         if ($stillRunning) {
             return $app->json(['finished' => false, 'resultMessage' => '']);

@@ -15,6 +15,11 @@ class DatabaseHelper
         $this->config = $config;
     }
 
+    public function isDatabaseNameValid(string $database): bool
+    {
+        return preg_match('/[^a-zA-Z\d_]/', $database);
+    }
+
     public function getAllowedDatabases(): array
     {
         $statement = $this->doctrine->executeQuery('SHOW DATABASES WHERE `Database` NOT IN (?)',
