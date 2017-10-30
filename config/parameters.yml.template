@@ -9,4 +9,5 @@ replissimo:
         - information_schema
         - mysql
         - performance_schema
+    internal_databases_format: ^_
     user_owner: test.local

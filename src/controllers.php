@@ -9,7 +9,13 @@ $app->get('/', function () use ($app) {
     $databases = $app['database_helper']->getAllowedDatabases();
 
     return $app['twig']->render('index.html.twig', ['databases' => $databases]);
-});
+})->bind('homepage');
+
+$app->get('/copies', function () use ($app) {
+    $databases = $app['database_helper']->getInternalDatabases();
+
+    return $app['twig']->render('copies.html.twig', ['databases' => $databases]);
+})->bind('copies');
 
 $app->post('/run', function (Request $request) use ($app) {
     try {
@@ -23,12 +29,10 @@ $app->post('/run', function (Request $request) use ($app) {
             return new Response("Name '$newDatabase' is invalid", 400);
         }
 
-        $databases = $databaseHelper->getAllowedDatabases();
-
-        if (!in_array($databaseToCopy, $databases)) {
-            return new Response("Database '$databaseToCopy' doesn't exist on the server.", 400);
+        if (!in_array($databaseToCopy, $databaseHelper->getAllowedDatabases())) {
+            return new Response("Database '$databaseToCopy' doesn't exist on the server or not allowed", 400);
         }
-        if (in_array($newDatabase, $databases)) {
+        if (in_array($newDatabase, $databaseHelper->getInternalDatabases())) {
             return new Response(
                 "Database '$newDatabase' already exists. You have to use another name or delete it.",
                 400
@@ -57,7 +61,7 @@ $app->get('/check', function (Request $request) use ($app) {
         if ($databaseHelper->isDatabaseNameValid($newDatabase)) {
             return $app->json(['finished' => false, 'resultMessage' => "Name '$newDatabase' is invalid"], 400);
         }
-        if (!in_array($newDatabase, $databaseHelper->getAllowedDatabases())) {
+        if (!in_array($newDatabase, $databaseHelper->getInternalDatabases())) {
             $resultMessage = "Database '$newDatabase' doesn't exist on the server.";
             return $app->json(['finished' => false, 'resultMessage' => $resultMessage], 400);
         }
@@ -82,6 +86,28 @@ $app->get('/check', function (Request $request) use ($app) {
         return $app->json(['finished' => false, 'resultMessage' => $resultMessage], 400);
     }
 })->bind('check');
+
+
+$app->delete('/drop', function (Request $request) use ($app) {
+    try {
+        $databaseHelper = $app['database_helper'];
+
+        $database = $request->get('database');
+
+        if ($databaseHelper->isDatabaseNameValid($database)) {
+            return new Response("Name '$database' is invalid.", 400);
+        }
+        if (!in_array($database, $databaseHelper->getInternalDatabases())) {
+            return new Response("Database '$database' can't be deleted as it's not internal.", 400);
+        }
+
+        $databaseHelper->dropDatabase($database);
+
+        return new Response("Database '$database' was successfully deleted", 200);
+    } catch (Exception $exception) {
+        return new Response($exception->getMessage(), 400);
+    }
+})->bind('drop');
 
 $app->error(function (\Exception $e, Request $request, $code) use ($app) {
     if ($app['debug']) {

@@ -27,9 +27,23 @@ class DatabaseHelper
 
     public function getAllowedDatabases(): array
     {
-        $statement = $this->doctrine->executeQuery('SHOW DATABASES WHERE `Database` NOT IN (?)',
-            [$this->config['disallowed_databases']],
+        $statement = $this->doctrine->executeQuery(
+            'SHOW DATABASES WHERE `Database` NOT IN (?) AND `Database` NOT REGEXP ?',
+            [
+                $this->config['disallowed_databases'],
+                $this->config['internal_databases_format']
+            ],
             [\Doctrine\DBAL\Connection::PARAM_STR_ARRAY]
+        );
+        $databases = $statement->fetchAll();
+        return array_column($databases, 'Database');
+    }
+
+    public function getInternalDatabases(): array
+    {
+        $statement = $this->doctrine->executeQuery(
+            'SHOW DATABASES WHERE `Database` REGEXP ?',
+            [$this->config['internal_databases_format']]
         );
         $databases = $statement->fetchAll();
         return array_column($databases, 'Database');
@@ -37,7 +51,7 @@ class DatabaseHelper
 
     public function createDatabase(string $databaseName) 
     {
-        $this->doctrine->query("CREATE DATABASE " . $this->doctrine->quoteIdentifier($databaseName));
+        $this->doctrine->query('CREATE DATABASE ' . $this->doctrine->quoteIdentifier($databaseName));
         $this->grantPermissions($databaseName);
     }
 
@@ -64,5 +78,12 @@ class DatabaseHelper
         }
 
         return false;
+    }
+
+    public function dropDatabase(string $databaseName)
+    {
+        $databaseName = $this->doctrine->quoteIdentifier($databaseName);
+
+        $this->doctrine->query("DROP DATABASE $databaseName");
     }
 }

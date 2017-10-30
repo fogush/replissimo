@@ -1,0 +1,43 @@
+{% extends "layout.html.twig" %}
+
+{% block content %}
+    <form id="main-form" class="center-block" method="post" action="{{ path('drop') }}">
+        <div class="row">
+            <div class="form-group">
+                <h2>List of already created copies</h2>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group">
+                <a href="{{ path('homepage') }}">Back to copying</a>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group">
+                You may want to use one of them (if an owner doesn't mind).<br>
+                Also you may delete an unused copy to clean up the server.
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group">
+                <label for="databases" class="form-control-label">Choose a database to drop</label>
+                <select name="database" id="databases" class="selectpicker form-control" data-live-search="true">
+                    {% for database in databases %}
+                        <option value="{{ database }}">{{ database }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group">
+                <button id="drop" class="btn btn-primary">Drop</button>
+            </div>
+        </div>
+        <div class="row" id="responses">
+            <div id="response-error" class="alert alert-danger hidden">
+            </div>
+            <div id="response-success" class="alert alert-success hidden">
+            </div>
+        </div>
+    </form>
+{% endblock %}

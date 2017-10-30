@@ -67,8 +67,8 @@ $(document).ready(function () {
                 inProgress.addClass('hidden');
 
                 $('#response-finish')
-                    .removeClass('hidden')
-                    .html(data.resultMessage);
+                    .html(data.resultMessage)
+                    .removeClass('hidden');
                 clearInterval(timer);
             } else {
                 inProgress.removeClass('hidden');
@@ -79,9 +79,47 @@ $(document).ready(function () {
             $('#in-progress').addClass('hidden');
 
             $('#response-error')
-                .removeClass('hidden')
-                .html(data.responseJSON.resultMessage);
+                .html(data.responseJSON.resultMessage)
+                .removeClass('hidden');
             clearInterval(timer);
         }
     }
+
+    $('#drop').on('click', function (ev) {
+        ev.preventDefault();
+
+        var databaseName = $('#databases').val(),
+            confirmed = confirm('Are you sure you want to delete "' + databaseName + '"');
+        if (!confirmed) {
+            return;
+        }
+
+        var form = $('#main-form'),
+            url = form.attr('action'),
+            formData = form.serializeArray();
+
+        hideResponses();
+
+        $.ajax({
+            type: "DELETE",
+            url: url,
+            data: formData,
+            success: successDropHandler,
+            error: errorDropHandler,
+            dataType: 'text'
+        });
+
+        function successDropHandler(data) {
+            //TODO: remove the value from the select
+            $('#response-success')
+                .html(data)
+                .removeClass('hidden');
+        }
+
+        function errorDropHandler(data) {
+            $('#response-error')
+                .html(data)
+                .removeClass('hidden');
+        }
+    })
 });
