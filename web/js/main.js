@@ -1,17 +1,42 @@
 $(document).ready(function () {
+
+    function hideResponses() {
+        $('#responses').find('div').addClass('hidden');
+    }
+
+    function showInProgress() {
+        $('#in-progress')
+            .removeClass('hidden');
+    }
+
+    function hideInProgress() {
+        $('#in-progress')
+            .addClass('hidden');
+    }
+
+    function showSetError(text) {
+        $('#response-error')
+            .html(text)
+            .removeClass('hidden');
+    }
+
+    function showSetSuccess(text) {
+        $('#response-success')
+            .html(text)
+            .removeClass('hidden');
+    }
+
     //FIXME: fix HTML5 validation or use a new plugin
 
     $('#run').on('click', function (ev) {
         ev.preventDefault();
 
-        $('#responses').find('div').addClass('hidden');
-
         var form = $('#main-form'),
             url = form.attr('action'),
             formData = form.serializeArray();
 
-        $('#in-progress')
-            .removeClass('hidden');
+        hideResponses();
+        showInProgress();
 
         $.ajax({
             type: "POST",
@@ -31,15 +56,9 @@ $(document).ready(function () {
         successRunHandler();
     });
 
-    function hideResponses() {
-        $('#responses').find('div').addClass('hidden');
-    }
-
     function errorRunHandler(data) {
         hideResponses();
-        $('#response-error')
-            .html(data.responseText)
-            .removeClass('hidden');
+        showSetError(data.responseText);
     }
 
     function successRunHandler() {
@@ -62,25 +81,20 @@ $(document).ready(function () {
         var timer = setInterval(runCheck, 20000);
 
         function successCheckHandler(data) {
-            var inProgress = $('#in-progress');
             if (data.finished) {
-                inProgress.addClass('hidden');
+                hideInProgress();
 
-                $('#response-finish')
-                    .html(data.resultMessage)
-                    .removeClass('hidden');
+                showSetSuccess(data.resultMessage);
                 clearInterval(timer);
             } else {
-                inProgress.removeClass('hidden');
+                showInProgress();
             }
         }
 
         function errorCheckHandler(data) {
-            $('#in-progress').addClass('hidden');
+            hideInProgress();
 
-            $('#response-error')
-                .html(data.responseJSON.resultMessage)
-                .removeClass('hidden');
+            showSetError(data.responseJSON.resultMessage);
             clearInterval(timer);
         }
     }
@@ -89,7 +103,7 @@ $(document).ready(function () {
         ev.preventDefault();
 
         var databaseName = $('#databases').val();
-        if (!databaseName || !confirm('Are you sure you want to delete "' + databaseName + '"')) {
+        if (!databaseName || !confirm('Are you sure you want to delete "' + databaseName + '"?')) {
             return;
         }
 
@@ -98,6 +112,7 @@ $(document).ready(function () {
             formData = form.serializeArray();
 
         hideResponses();
+        showInProgress();
 
         $.ajax({
             type: "DELETE",
@@ -105,24 +120,20 @@ $(document).ready(function () {
             data: formData,
             success: successDropHandler,
             error: errorDropHandler,
+            complete: hideInProgress,
             dataType: 'text'
         });
 
         function successDropHandler(data) {
-
             var databases = $('#databases');
             databases.find("option[value='" + databases.val() + "']").remove();
             databases.selectpicker('refresh').val(null).trigger('change');
 
-            $('#response-success')
-                .html(data)
-                .removeClass('hidden');
+            showSetSuccess(data);
         }
 
         function errorDropHandler(data) {
-            $('#response-error')
-                .html(data)
-                .removeClass('hidden');
+            showSetError(data.responseText);
         }
     })
 });
