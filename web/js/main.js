@@ -88,9 +88,8 @@ $(document).ready(function () {
     $('#drop').on('click', function (ev) {
         ev.preventDefault();
 
-        var databaseName = $('#databases').val(),
-            confirmed = confirm('Are you sure you want to delete "' + databaseName + '"');
-        if (!confirmed) {
+        var databaseName = $('#databases').val();
+        if (!databaseName || !confirm('Are you sure you want to delete "' + databaseName + '"')) {
             return;
         }
 
@@ -110,7 +109,11 @@ $(document).ready(function () {
         });
 
         function successDropHandler(data) {
-            //TODO: remove the value from the select
+
+            var databases = $('#databases');
+            databases.find("option[value='" + databases.val() + "']").remove();
+            databases.selectpicker('refresh').val(null).trigger('change');
+
             $('#response-success')
                 .html(data)
                 .removeClass('hidden');
